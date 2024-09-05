@@ -1,26 +1,29 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:zegosocial/views/auth/signup_page.dart';
-import 'package:zegosocial/views/home/home_page.dart';
+import 'package:form_validator/form_validator.dart';
+import 'package:zegosocial/views/auth/views/login_page.dart';
+import 'package:zegosocial/views/home/views/home_page.dart';
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+class SignUpPage extends StatefulWidget {
+  const SignUpPage({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<SignUpPage> createState() => _SignUpPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _SignUpPageState extends State<SignUpPage> {
+  GlobalKey<FormState> key = GlobalKey<FormState>();
+
+  String? username;
+  String? email;
+  String? password;
+
   @override
   Widget build(BuildContext context) {
-    GlobalKey<FormState> key = GlobalKey<FormState>();
-
-    String? email;
-    String? password;
-
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Login"),
+        title: const Text("Sign Up"),
       ),
       body: Form(
         key: key,
@@ -33,8 +36,22 @@ class _LoginPageState extends State<LoginPage> {
             TextFormField(
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
+                labelText: "Username",
+              ),
+              validator: ValidationBuilder().maxLength(15).build(),
+              onChanged: (value) {
+                username = value;
+              },
+            ),
+            const SizedBox(
+              height: 12,
+            ),
+            TextFormField(
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
                 labelText: "Email",
               ),
+              validator: ValidationBuilder().email().maxLength(50).build(),
               onChanged: (value) {
                 email = value;
               },
@@ -47,6 +64,7 @@ class _LoginPageState extends State<LoginPage> {
                 border: OutlineInputBorder(),
                 labelText: "Password",
               ),
+              validator: ValidationBuilder().minLength(6).maxLength(15).build(),
               onChanged: (value) {
                 password = value;
               },
@@ -65,12 +83,26 @@ class _LoginPageState extends State<LoginPage> {
               onPressed: () async {
                 if (key.currentState?.validate() ?? false) {
                   try {
-                    await FirebaseAuth.instance
-                        .signInWithEmailAndPassword(email: email!, password: password!);
+                    UserCredential userCredentials = await FirebaseAuth.instance
+                        .createUserWithEmailAndPassword(email: email!, password: password!);
+
+                    if (userCredentials.user != null) {
+                      // Add to Database
+                      var data = {
+                        'username': username,
+                        'email': email,
+                        'created_at': DateTime.now(),
+                      };
+
+                      await FirebaseFirestore.instance
+                          .collection('users')
+                          .doc(userCredentials.user!.uid)
+                          .set(data);
+                    }
 
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text("Logged In"),
+                        content: Text("Signed Up"),
                       ),
                     );
 
@@ -88,7 +120,7 @@ class _LoginPageState extends State<LoginPage> {
                   }
                 }
               },
-              child: const Text("Login"),
+              child: const Text("Sign Up"),
             ),
             const SizedBox(
               height: 100,
@@ -97,12 +129,12 @@ class _LoginPageState extends State<LoginPage> {
               onTap: () {
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(
-                    builder: (context) => const SignUpPage(),
+                    builder: (context) => const LoginPage(),
                   ),
                 );
               },
               child: const Text(
-                "Do Not Have An Account? Sign Up",
+                "Already Have An Account? Login",
                 textAlign: TextAlign.center,
               ),
             ),
