@@ -1,6 +1,8 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:zegosocial/views/auth/login_page.dart';
 import 'package:zegosocial/views/auth/signup_page.dart';
 
 void main() async {
@@ -22,7 +24,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blueAccent),
         useMaterial3: true,
       ),
-      home: const SignUpPage(),
+      home: FirebaseAuth.instance.currentUser == null ? const LoginPage() : const SignUpPage(),
     );
   }
 }
