@@ -74,6 +74,9 @@ class _SignUpPageState extends State<SignUpPage> {
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 minimumSize: const Size(double.infinity, 40),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(5),
+                ),
               ),
               onPressed: () async {
                 if (key.currentState?.validate() ?? false) {

@@ -3,9 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:zegosocial/views/auth/signup_page.dart';
 import 'package:zegosocial/views/home/home_page.dart';
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     GlobalKey<FormState> key = GlobalKey<FormState>();
@@ -52,6 +57,9 @@ class LoginPage extends StatelessWidget {
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 minimumSize: const Size(double.infinity, 40),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(5),
+                ),
               ),
               onPressed: () async {
                 if (key.currentState?.validate() ?? false) {
