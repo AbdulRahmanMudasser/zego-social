@@ -60,6 +60,7 @@ class _LoginPageState extends State<LoginPage> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(5),
                 ),
+                elevation: 0,
               ),
               onPressed: () async {
                 if (key.currentState?.validate() ?? false) {

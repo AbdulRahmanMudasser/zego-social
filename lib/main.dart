@@ -24,7 +24,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blueAccent),
         useMaterial3: true,
       ),
-      home: FirebaseAuth.instance.currentUser == null ? const LoginPage() : const SignUpPage(),
+      home: FirebaseAuth.instance.currentUser == null ? const SignUpPage() : const LoginPage(),
     );
   }
 }

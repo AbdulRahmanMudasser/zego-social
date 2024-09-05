@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:form_validator/form_validator.dart';
@@ -77,12 +78,27 @@ class _SignUpPageState extends State<SignUpPage> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(5),
                 ),
+                elevation: 0,
               ),
               onPressed: () async {
                 if (key.currentState?.validate() ?? false) {
                   try {
-                    await FirebaseAuth.instance
+                    UserCredential userCredentials = await FirebaseAuth.instance
                         .createUserWithEmailAndPassword(email: email!, password: password!);
+
+                    if (userCredentials.user != null) {
+                      // Add to Database
+                      var data = {
+                        'username': username,
+                        'email': email,
+                        'created_at': DateTime.now(),
+                      };
+
+                      await FirebaseFirestore.instance
+                          .collection('users')
+                          .doc(userCredentials.user!.uid)
+                          .set(data);
+                    }
 
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
