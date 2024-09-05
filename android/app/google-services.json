@@ -7,6 +7,25 @@
   "client": [
     {
       "client_info": {
+        "mobilesdk_app_id": "1:203120777153:android:01230e0e33ca041b6bc140",
+        "android_client_info": {
+          "package_name": "com.zegosocial"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBTKv9GB5QBnefmn0V_8F6lGRY4Apb1kSw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
         "mobilesdk_app_id": "1:203120777153:android:c5e630ab3f5203f06bc140",
         "android_client_info": {
           "package_name": "com.zegosocial.zegosocial"
