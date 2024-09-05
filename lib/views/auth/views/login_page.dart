@@ -1,29 +1,26 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:form_validator/form_validator.dart';
-import 'package:zegosocial/views/auth/login_page.dart';
-import 'package:zegosocial/views/home/home_page.dart';
+import 'package:zegosocial/views/auth/views/signup_page.dart';
+import 'package:zegosocial/views/home/views/home_page.dart';
 
-class SignUpPage extends StatefulWidget {
-  const SignUpPage({super.key});
+class LoginPage extends StatefulWidget {
+  const LoginPage({super.key});
 
   @override
-  State<SignUpPage> createState() => _SignUpPageState();
+  State<LoginPage> createState() => _LoginPageState();
 }
 
-class _SignUpPageState extends State<SignUpPage> {
-  GlobalKey<FormState> key = GlobalKey<FormState>();
-
-  String? username;
-  String? email;
-  String? password;
-
+class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
+    GlobalKey<FormState> key = GlobalKey<FormState>();
+
+    String? email;
+    String? password;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Sign Up"),
+        title: const Text("Login"),
       ),
       body: Form(
         key: key,
@@ -36,22 +33,8 @@ class _SignUpPageState extends State<SignUpPage> {
             TextFormField(
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
-                labelText: "Username",
-              ),
-              validator: ValidationBuilder().maxLength(15).build(),
-              onChanged: (value) {
-                username = value;
-              },
-            ),
-            const SizedBox(
-              height: 12,
-            ),
-            TextFormField(
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
                 labelText: "Email",
               ),
-              validator: ValidationBuilder().email().maxLength(50).build(),
               onChanged: (value) {
                 email = value;
               },
@@ -64,7 +47,6 @@ class _SignUpPageState extends State<SignUpPage> {
                 border: OutlineInputBorder(),
                 labelText: "Password",
               ),
-              validator: ValidationBuilder().minLength(6).maxLength(15).build(),
               onChanged: (value) {
                 password = value;
               },
@@ -83,26 +65,12 @@ class _SignUpPageState extends State<SignUpPage> {
               onPressed: () async {
                 if (key.currentState?.validate() ?? false) {
                   try {
-                    UserCredential userCredentials = await FirebaseAuth.instance
-                        .createUserWithEmailAndPassword(email: email!, password: password!);
-
-                    if (userCredentials.user != null) {
-                      // Add to Database
-                      var data = {
-                        'username': username,
-                        'email': email,
-                        'created_at': DateTime.now(),
-                      };
-
-                      await FirebaseFirestore.instance
-                          .collection('users')
-                          .doc(userCredentials.user!.uid)
-                          .set(data);
-                    }
+                    await FirebaseAuth.instance
+                        .signInWithEmailAndPassword(email: email!, password: password!);
 
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text("Signed Up"),
+                        content: Text("Logged In"),
                       ),
                     );
 
@@ -120,7 +88,7 @@ class _SignUpPageState extends State<SignUpPage> {
                   }
                 }
               },
-              child: const Text("Sign Up"),
+              child: const Text("Login"),
             ),
             const SizedBox(
               height: 100,
@@ -129,12 +97,12 @@ class _SignUpPageState extends State<SignUpPage> {
               onTap: () {
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(
-                    builder: (context) => const LoginPage(),
+                    builder: (context) => const SignUpPage(),
                   ),
                 );
               },
               child: const Text(
-                "Already Have An Account? Login",
+                "Do Not Have An Account? Sign Up",
                 textAlign: TextAlign.center,
               ),
             ),
