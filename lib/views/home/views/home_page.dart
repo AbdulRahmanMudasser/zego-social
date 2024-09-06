@@ -1,7 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:zegosocial/views/home/views/widgets/image_post.dart';
+import 'package:zegosocial/views/home/views/widgets/text_post.dart';
 import 'package:zegosocial/views/search/views/search_page.dart';
-
 import '../../auth/views/login_page.dart';
 
 class HomePage extends StatefulWidget {
@@ -12,62 +14,190 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  late final TextEditingController _postController;
+
+  @override
+  void initState() {
+    super.initState();
+    _postController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _postController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          "Home Page",
-          style: TextStyle(fontSize: 16),
-        ),
-        centerTitle: true,
-        iconTheme: const IconThemeData(size: 24),
-        actions: [
-          IconButton(
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const SearchPage(),
-                ),
-              );
-            },
-            icon: const Icon(Icons.search),
-          ),
-        ],
-      ),
-      drawer: Drawer(
+      appBar: _buildAppBar(),
+      drawer: _buildDrawer(context),
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 15),
         child: Column(
           children: [
-            const SizedBox(
-              height: 50,
-            ),
-            const ListTile(
-              title: Text("Settings"),
-            ),
-            const Spacer(),
-            ListTile(
-              title: const Text(
-                "Sign Out",
-              ),
-              onTap: () async {
-                await FirebaseAuth.instance.signOut();
-
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(
-                    builder: (context) => const LoginPage(),
-                  ),
-                  (route) => false,
-                );
-              },
-            ),
-            const SizedBox(
-              height: 50,
-            ),
+            const SizedBox(height: 20),
+            _buildPostSection(),
+            const SizedBox(height: 20),
+            _showPosts(),
           ],
         ),
       ),
-      body: const Center(
-        child: Text("Home Page"),
+    );
+  }
+
+  AppBar _buildAppBar() {
+    return AppBar(
+      title: const Text(
+        "Feed",
+        style: TextStyle(fontSize: 16),
+      ),
+      centerTitle: true,
+      iconTheme: const IconThemeData(size: 24),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.search),
+          onPressed: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => const SearchPage(),
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Drawer _buildDrawer(BuildContext context) {
+    return Drawer(
+      child: Column(
+        children: [
+          const SizedBox(height: 50),
+          const ListTile(
+            title: Text("Settings"),
+          ),
+          const Spacer(),
+          ListTile(
+            title: const Text("Sign Out"),
+            onTap: () async {
+              await FirebaseAuth.instance.signOut();
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(
+                  builder: (context) => const LoginPage(),
+                ),
+                (route) => false,
+              );
+            },
+          ),
+          const SizedBox(height: 50),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPostSection() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey.withOpacity(0.5)),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        children: [
+          TextFormField(
+            controller: _postController,
+            decoration: const InputDecoration(
+              hintText: "Write Something to Post",
+              hintStyle: TextStyle(fontSize: 14),
+            ),
+          ),
+          const SizedBox(height: 25),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size(100, 35),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(5),
+                ),
+                elevation: 0,
+              ),
+              onPressed: _handlePost,
+              child: const Text("Post"),
+            ),
+          ),
+          const SizedBox(height: 20),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _handlePost() async {
+    if (_postController.text.trim().isEmpty) return;
+
+    final postContent = {
+      "time": DateTime.now(),
+      "type": "text",
+      "content": _postController.text.trim(),
+      "uid": FirebaseAuth.instance.currentUser!.uid,
+    };
+
+    await FirebaseFirestore.instance.collection("posts").add(postContent);
+    _postController.clear();
+    setState(() {});
+  }
+
+  Widget _showPosts() {
+    return Expanded(
+      child: FutureBuilder<QuerySnapshot>(
+        future: FirebaseFirestore.instance
+            .collection("users")
+            .doc(FirebaseAuth.instance.currentUser!.uid)
+            .collection("timeline")
+            .get(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return const LinearProgressIndicator();
+          }
+
+          return Flexible(
+            child: ListView.builder(
+              itemCount: snapshot.data?.docs.length ?? 0,
+              itemBuilder: (context, index) {
+                DocumentSnapshot documentSnapshot = snapshot.data!.docs[index];
+
+                return FutureBuilder<DocumentSnapshot>(
+                  future: FirebaseFirestore.instance
+                      .collection("posts")
+                      .doc((documentSnapshot.data() as Map)["post-id"])
+                      .get(),
+                  builder: (context, postSnapshot) {
+                    if (!postSnapshot.hasData) {
+                      return const Center(
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      );
+                    }
+
+                    switch (postSnapshot.data!["type"]) {
+                      case "text":
+                        return TextPost(
+                          text: postSnapshot.data!["content"],
+                        );
+
+                      default:
+                        return ImagePost(
+                          text: postSnapshot.data!["content"],
+                          url: postSnapshot.data!["url"],
+                        );
+                    }
+                  },
+                );
+              },
+            ),
+          );
+        },
       ),
     );
   }
