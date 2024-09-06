@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:form_validator/form_validator.dart';
 import 'package:zegosocial/views/auth/views/login_page.dart';
-import 'package:zegosocial/views/home/views/home_page.dart';
+import 'package:zegosocial/views/main/views/main_page.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -106,15 +106,17 @@ class _SignUpPageState extends State<SignUpPage> {
                       ),
                     );
 
-                    Navigator.of(context).push(
+                    Navigator.of(context).pushReplacement(
                       MaterialPageRoute(
-                        builder: (context) => const HomePage(),
+                        builder: (context) => const MainPage(),
                       ),
                     );
                   } on FirebaseAuthException catch (e) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text(e.toString()),
+                        content: Text(
+                          e.toString(),
+                        ),
                       ),
                     );
                   }
